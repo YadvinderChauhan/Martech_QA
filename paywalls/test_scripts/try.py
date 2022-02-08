@@ -9,7 +9,7 @@ print(cta_icid)
 new_cta_url = extract_url.get_url(cta_url)
 print(new_cta_url)
 
-print(get)
+print('All done')
 '''
 # write the URLs and the ICIDs to the text file.
 

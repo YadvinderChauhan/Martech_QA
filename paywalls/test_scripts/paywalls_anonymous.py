@@ -6,6 +6,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait as W
 from webdriver_manager.chrome import ChromeDriverManager
+#######################################################################
+# User defined functions
+from utilities import extract_icid, extract_url
+
+#######################################################################
 
 wait_time_out = 15
 
@@ -57,8 +62,10 @@ elif cookie_banner_country == True:
 
 # 5. Read each test url from the list, and create a list
 with open("../test_data/paywall_urls.txt", "r") as urlFile:
-	urls_list = urlFile.read().split('\n')
-	# print(urls_list)
+	urls_list = []
+	for url in urlFile:
+		urls_list.append(url.strip())
+	#print(urls_list)
 
 	# 6. open each article one by one by reading the list
 	for url in urls_list:
@@ -80,7 +87,7 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		if content_type == 'gallery':
 			pass
 		else:
-			driver.execute_script("window.scroll(0, 1050)")
+			driver.execute_script("window.scroll(0, 1080)")
 			time.sleep(3)
 
 		# 9. Define the page variables - used to identify which paywall is expected
@@ -95,14 +102,10 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		if is_old_paywal:
 			# extract the CTA url
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-main").get_attribute("href")
-			# print(cta_url)
-			head, sep, tail = cta_url.partition('&redirectTo')
-			new_cta_url = head
+			new_cta_url = extract_url.get_url(cta_url)
+
 			# extract the ICID from the CTA url
-			query = urlparse(cta_url).query
-			path_list = parse_qs(query)['ICID']
-			cta_icid = path_list[0]
-			print('ICID=' + cta_icid)
+			cta_icid = extract_icid.get_icid(cta_url)
 
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
@@ -111,15 +114,13 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 				icidsFile.write("\nCTA url: " + new_cta_url)
 				icidsFile.write("\nCTA ICID: " + cta_icid)
 
+			# extract the login url
 			login_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-bottom").get_attribute("href")
-			# print(login_url)
-			head, sep, tail = login_url.partition('&redirectTo')
-			new_login_url = head
+			new_login_url = extract_url.get_url(login_url)
+
 			# extract the ICID from the login url
-			query = urlparse(login_url).query
-			path_list = parse_qs(query)['ICID']
-			login_icid = path_list[0]
-			print('ICID=' + login_icid)
+			login_icid = extract_icid.get_icid(login_url)
+
 
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
@@ -129,14 +130,10 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		elif is_gallery_paywall:
 			# extract the CTA url
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-main").get_attribute("href")
-			# print(cta_url)
-			head, sep, tail = cta_url.partition('&redirectTo')
-			new_cta_url = head
+			new_cta_url = extract_url.get_url(cta_url)
+
 			# extract the ICID from the CTA url
-			query = urlparse(cta_url).query
-			path_list = parse_qs(query)['ICID']
-			cta_icid = path_list[0]
-			print('ICID=' + cta_icid)
+			cta_icid = extract_icid.get_icid(cta_url)
 
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
@@ -144,15 +141,12 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 				icidsFile.write("\nCTA url: " + new_cta_url)
 				icidsFile.write("\nCTA ICID: " + cta_icid)
 
+			# extract the login url
 			login_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-bottom").get_attribute("href")
-			# print(login_url)
-			head, sep, tail = login_url.partition('&redirectTo')
-			new_login_url = head
+			new_login_url = extract_url.get_url(login_url)
+
 			# extract the ICID from the login url
-			query = urlparse(login_url).query
-			path_list = parse_qs(query)['ICID']
-			login_icid = path_list[0]
-			print('ICID=' + login_icid)
+			login_icid = extract_icid.get_icid(login_url)
 
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
@@ -162,29 +156,24 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		elif is_new_paywal:
 			# extract the CTA url
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__button").get_attribute("href")
-			# print(cta_url)
-			head, sep, tail = cta_url.partition('&redirectTo')
-			new_cta_url = head
+			new_cta_url = extract_url.get_url(cta_url)
+
 			# extract the ICID from the CTA url
-			query = urlparse(cta_url).query
-			path_list = parse_qs(query)['ICID']
-			cta_icid = path_list[0]
-			print('ICID=' + cta_icid)
+			cta_icid = extract_icid.get_icid(cta_url)
+
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
 				icidsFile.write("\nNew Paywall")
 				icidsFile.write("\nCTA url: " + new_cta_url)
 				icidsFile.write("\nCTA ICID: " + cta_icid)
 
+			# extract the login url
 			login_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__link").get_attribute("href")
-			# print(login_url)
-			head, sep, tail = login_url.partition('&redirectTo')
-			new_login_url = head
+			new_login_url = extract_url.get_url(login_url)
+
 			# extract the ICID from the login url
-			query = urlparse(login_url).query
-			path_list = parse_qs(query)['ICID']
-			login_icid = path_list[0]
-			print('ICID=' + login_icid)
+			login_icid = extract_icid.get_icid(login_url)
+
 			# write the URLs and the ICIDs to the text file.
 			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
 				icidsFile.write("\n\nlogin_url: " + new_login_url)
@@ -201,7 +190,7 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png")
 		else:
 			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png")
-	print("screenshot saved successfully")
+		print("screenshot saved successfully")
 	time.sleep(3)
 
 # 12. Close the session

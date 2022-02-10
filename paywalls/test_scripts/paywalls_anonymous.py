@@ -170,6 +170,7 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 			# extract the login url
 			login_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__link").get_attribute("href")
 			new_login_url = extract_url.get_url(login_url)
+			print(new_login_url)
 
 			# extract the ICID from the login url
 			login_icid = extract_icid.get_icid(login_url)

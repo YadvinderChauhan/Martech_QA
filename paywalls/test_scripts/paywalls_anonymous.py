@@ -1,6 +1,5 @@
 import datetime
 import time
-from urllib.parse import urlparse, parse_qs
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -11,9 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from utilities import extract_icid, extract_url
 
 #######################################################################
-
 wait_time_out = 15
-
 # 1. Install the Chrome driver at the run time.
 # Create an object of service class and pass the chrome driver installation instance
 s = Service(ChromeDriverManager().install())
@@ -44,7 +41,7 @@ if cookie_consent_given == True or cookie_banner_country == False:
 elif cookie_banner_country == True:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_599602")
+		iframe = driver.find_element(By.ID, "sp_message_iframe_606291")
 		if iframe.is_displayed():
 			driver.switch_to.frame(iframe)
 			print("Switched to cookie banner")
@@ -170,7 +167,6 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 			# extract the login url
 			login_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__link").get_attribute("href")
 			new_login_url = extract_url.get_url(login_url)
-			print(new_login_url)
 
 			# extract the ICID from the login url
 			login_icid = extract_icid.get_icid(login_url)

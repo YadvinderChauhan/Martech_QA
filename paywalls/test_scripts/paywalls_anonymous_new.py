@@ -34,7 +34,7 @@ geo_location = driver.execute_script('return martech.visitor.geo_location') # Th
 if cookie_consent_given == True or cookie_banner_country == False:
 	print('Cookie banner not expected.')
 
-elif cookie_banner_country == True:
+elif cookie_banner_country == True and cookie_consent_given == False:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
 		iframe = driver.find_element(By.ID, "sp_message_iframe_606291")

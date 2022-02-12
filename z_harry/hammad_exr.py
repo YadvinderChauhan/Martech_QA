@@ -1,0 +1,1 @@
+excercise = ["3 sets Chest fly","3 sets Push-super","3 sets Pull-down","3 sets Pull-up","3 sets Shoulder front"]

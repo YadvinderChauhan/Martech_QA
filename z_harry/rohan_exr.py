@@ -1,1 +1,0 @@
-excercise = ["3 sets Biceps curl","3 sets Crunch","3 sets Russina twist","3 sets Leg raise","3 sets Back extension"]

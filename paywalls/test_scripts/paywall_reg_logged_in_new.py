@@ -20,24 +20,33 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&engaged=false&non-engaged=false"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
 time.sleep(3)
 
+# Delete a cookie with name 'consentUUID'
+driver.delete_cookie("consentUUID")
+
+# Adds the cookie into current browser context
+driver.add_cookie({"name": "consentUUID", "value": "2dfe1a9d-f1d7-45a9-a78b-3f964097af30"})
+
+driver.refresh()
+time.sleep(3)
+
 # 3. Get geo location and check if cookie banner should get delivered.
-cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
-cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
+# cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
+# cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
 geo_location = driver.execute_script('return martech.visitor.geo_location') # This will form part of the screenshot name.
 
-if cookie_consent_given == True or cookie_banner_country == False:
+'''if cookie_consent_given == True or cookie_banner_country == False:
 	print('Cookie banner not expected.')
 
 elif cookie_banner_country == True:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_606291")
+		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
 		if iframe.is_displayed():
 			driver.switch_to.frame(iframe)
 			print("Switched to cookie banner")
@@ -50,7 +59,7 @@ elif cookie_banner_country == True:
 		else:
 			print("Info: No cookie banner displayed.")
 	except Exception as e:
-		print(e)
+		print(e)'''
 
 # 4. Read the email ID and the password for the test account from the text file.
 with open("../test_data/login_credentials.txt", "r") as userFile:
@@ -72,8 +81,8 @@ driver.find_element(By.ID, "login-button").click()
 print('Login successful')
 time.sleep(3)
 
-driver.get("https://www.telegraph.co.uk/politics/2022/02/06/treasury-blocks-boris-johnsons-plan-clear-nhs-backlog"
-           "/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&engaged=false&non-engaged=false")
+driver.get("https://www.telegraph.co.uk/politics/2022/02/04/congratulated-bbc-inviting-unvaccinated-question-time"
+           "-might/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false")
 time.sleep(7)
 driver.execute_script("window.scroll(0, 2000)")
 time.sleep(5)
@@ -135,9 +144,9 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		                                                                        )  # gives the new_date_stamp as 2021_12_06_12_49_17
 		if channel_name == '':
 			new_channel_name = 'home_portal'
-			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_REG_" + new_channel_name + new_date_stamp + ".png")
+			driver.save_screenshot("../screenshots/" + "D+" + geo_location.upper() + "_REG_" + new_channel_name + new_date_stamp + ".png")
 		else:
-			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_REG_" + channel_name + new_date_stamp + ".png")
+			driver.save_screenshot("../screenshots/" + "D+" + geo_location.upper() + "_REG_" + channel_name + new_date_stamp + ".png")
 		print("Screenshot saved successfully")
 	time.sleep(3)
 
@@ -152,10 +161,12 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		icidsFile.write("\n\nGallery Paywall")
 		icidsFile.write("\nCTA url: " + gallery_cta_url)
 		icidsFile.write("\nCTA ICID: " + gallery_cta_icid)
+		'''
 		# New Paywall
 		icidsFile.write("\n\nNew Paywall")
 		icidsFile.write("\nCTA url: " + new_paywall_cta_url)
 		icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
+	'''
 	print('CTA urls and the ICIDs saved in the file')
 
 # 13. Close the session

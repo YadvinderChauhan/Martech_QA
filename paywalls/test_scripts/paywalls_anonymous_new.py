@@ -20,24 +20,32 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&engaged=false&non-engaged=false"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
 time.sleep(3)
+# Delete a cookie with name 'consentUUID'
+driver.delete_cookie("consentUUID")
 
+# Adds the cookie into current browser context
+driver.add_cookie({"name": "consentUUID", "value": "2dfe1a9d-f1d7-45a9-a78b-3f964097af30"})
+
+driver.refresh()
+time.sleep(3)
 # 3. Get geo location and check if cookie banner should get delivered.
-cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
-cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
+# cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
+# cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
 geo_location = driver.execute_script('return martech.visitor.geo_location') # This will form part of the screenshot name.
 
-if cookie_consent_given == True or cookie_banner_country == False:
+'''if cookie_consent_given == True or cookie_banner_country == False:
 	print('Cookie banner not expected.')
 
 elif cookie_banner_country == True and cookie_consent_given == False:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_606291")
+		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
+
 		if iframe.is_displayed():
 			driver.switch_to.frame(iframe)
 			print("Switched to cookie banner")
@@ -50,7 +58,7 @@ elif cookie_banner_country == True and cookie_consent_given == False:
 		else:
 			print("Info: No cookie banner displayed.")
 	except Exception as e:
-		print(e)
+		print(e)'''
 
 # 4. Read each test url from the list, and create a list
 with open("../test_data/paywall_urls.txt", "r") as urlFile:
@@ -118,11 +126,11 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		if channel_name == '':
 			new_channel_name = 'home_portal'
 			driver.save_screenshot(
-				"../screenshots/" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png"
+				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png"
 			)
 		else:
 			driver.save_screenshot(
-				"../screenshots/" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png"
+				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png"
 			)
 		print("Screenshot saved successfully")
 	time.sleep(3)
@@ -142,12 +150,14 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		icidsFile.write("\nCTA ICID: " + gallery_cta_icid)
 		icidsFile.write("\nlogin_url: " + gallery_login_url)
 		icidsFile.write("\nCTA ICID: " + gallery_login_icid)
+		'''
 		# New Paywall
 		icidsFile.write("\n\nNew Paywall")
 		icidsFile.write("\nCTA url: " + new_paywall_cta_url)
 		icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
 		icidsFile.write("\nlogin_url: " + new_paywall_login_url)
 		icidsFile.write("\nLogin ICID: " + new_paywall_login_icid)
+'''
 	print('CTA URLs and the ICIDs saved in the file')
 
 # 12. Close the session

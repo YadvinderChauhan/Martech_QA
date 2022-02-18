@@ -40,7 +40,7 @@ if cookie_consent_given == True or cookie_banner_country == False:
 elif cookie_banner_country == True:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_599602")
+		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
 		if iframe.is_displayed():
 			driver.switch_to.frame(iframe)
 			print("Switched to cookie banner")

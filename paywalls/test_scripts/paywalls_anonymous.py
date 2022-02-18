@@ -20,28 +20,32 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&engaged=false&non-engaged=false"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
 time.sleep(3)
+# Delete a cookie with name 'consentUUID'
+driver.delete_cookie("consentUUID")
 
+# Adds the cookie into current browser context
+driver.add_cookie({"name": "consentUUID", "value": "2dfe1a9d-f1d7-45a9-a78b-3f964097af30"})
+
+driver.refresh()
+time.sleep(3)
 # 3. Get geo location and check if cookie banner should get delivered.
-# The parameter "country_with_cookie_banner" is used to determine if the cookie consent should be displayed or not.
-# in the console if country_with_cookie_banner == false, that means the country location won't see the cookie banner
-# cookie_consent is used to establish if the cookie-consent has already been given.
-
-cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
-cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
+# cookie_banner_country = driver.execute_script('return martech.visitor.country_with_cookie_banner')
+# cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
 geo_location = driver.execute_script('return martech.visitor.geo_location') # This will form part of the screenshot name.
 
-if cookie_consent_given == True or cookie_banner_country == False:
+'''if cookie_consent_given == True or cookie_banner_country == False:
 	print('Cookie banner not expected.')
 
-elif cookie_banner_country == True:
+elif cookie_banner_country == True and cookie_consent_given == False:
 	# 4. Check if the Cookie Banner exists, and accept if yes.
 	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_606291")
+		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
+
 		if iframe.is_displayed():
 			driver.switch_to.frame(iframe)
 			print("Switched to cookie banner")
@@ -54,129 +58,66 @@ elif cookie_banner_country == True:
 		else:
 			print("Info: No cookie banner displayed.")
 	except Exception as e:
-		print(e)
+		print(e)'''
 
-
-# 5. Read each test url from the list, and create a list
+# 4. Read each test url from the list, and create a list
 with open("../test_data/paywall_urls.txt", "r") as urlFile:
 	urls_list = []
 	for url in urlFile:
 		urls_list.append(url.strip())
-	#print(urls_list)
 
-	# 6. open each article one by one by reading the list
+	# 5. open each article one by one by reading the list
 	for url in urls_list:
 		print(url)
 		driver.get(url)
-		time.sleep(3)
+		time.sleep(5)
 
-		# 7. Identify the content type to establish which paywall on the page is expected.
-		# ====================================================================================================================================
-		# old paywall gets displayed where content_type is "story" or "live" or "video" or "longform"  and channel is 'travel' or 'property'
-		# gallery paywall gets displayed where content_type is gallery
-		# new paywall gets displayed where content_type is "story" or "live" or "video" or "longform"  and page_renderer: "articleRenderer"
-
+		# 6. Identify the content type to establish which paywall on the page is expected.
 		content_type = driver.execute_script('return martech.visitor.content_type')
 		channel_name = driver.execute_script('return martech.visitor.channel')
 		page_renderer = driver.execute_script('return martech.visitor.page_renderer')
 
-		# 8. Scroll down the page to maximize the paywall if required
+		# 7. Scroll down the page to maximize the paywall if required
 		if content_type == 'gallery':
 			pass
 		else:
-			driver.execute_script("window.scroll(0, 1080)")
+			driver.execute_script("window.scroll(0, 1100)")
 			time.sleep(3)
 
-		# 9. Define the page variables - used to identify which paywall is expected
-		is_old_paywal = (
-					                content_type == "story" or content_type == "live" or content_type == "video" or content_type == "longform") and (
-					                channel_name == 'travel' or channel_name == 'property')
+		# 8. Define the page variables - used to identify which paywall is expected
+		is_old_paywal = (content_type == "story" or content_type == "live" or content_type == "video" or content_type == "longform")\
+		                and (channel_name == 'travel' or channel_name == 'property')
+
 		is_gallery_paywall = (content_type == "gallery")
-		is_new_paywal = not (is_old_paywal and page_renderer == "articleRenderer") and (
-					content_type == "story" or content_type == "live" or content_type == "video" or content_type == "longform") and not (
-			is_gallery_paywall)
 
+		is_new_paywal = not (is_old_paywal and page_renderer == "articleRenderer") \
+		                and (content_type == "story" or content_type == "live" or content_type == "video" or content_type == "longform") \
+		                and not (is_gallery_paywall)
+
+		# 9. Establish the expected paywall and retrieve the CTA URL, and Login URL and their ICIDs.
 		if is_old_paywal:
-			# extract the CTA url
-			cta_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-main").get_attribute("href")
-			new_cta_url = extract_url.get_url(cta_url)
-
-			# extract the ICID from the CTA url
-			cta_icid = extract_icid.get_icid(cta_url)
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write(geo_location.upper() + ": ANONYMOUS")
-				icidsFile.write("\nOld Paywall")
-				icidsFile.write("\nCTA url: " + new_cta_url)
-				icidsFile.write("\nCTA ICID: " + cta_icid)
-
-			# extract the login url
+			paywall_cta_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-main").get_attribute("href")
+			old_paywall_cta_url = extract_url.get_url(paywall_cta_url)
+			old_paywall_cta_icid = extract_icid.get_icid(paywall_cta_url)
 			login_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-bottom").get_attribute("href")
-			new_login_url = extract_url.get_url(login_url)
-
-			# extract the ICID from the login url
-			login_icid = extract_icid.get_icid(login_url)
-
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write("\n\nlogin_url: " + new_login_url)
-				icidsFile.write("\nLogin ICID: " + login_icid + "\n")
+			old_paywall_login_url = extract_url.get_url(login_url)
+			Old_paywall_login_icid = extract_icid.get_icid(login_url)
 
 		elif is_gallery_paywall:
-			# extract the CTA url
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-main").get_attribute("href")
-			new_cta_url = extract_url.get_url(cta_url)
-
-			# extract the ICID from the CTA url
-			cta_icid = extract_icid.get_icid(cta_url)
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write("\nGallery Paywall")
-				icidsFile.write("\nCTA url: " + new_cta_url)
-				icidsFile.write("\nCTA ICID: " + cta_icid)
-
-			# extract the login url
+			gallery_cta_url = extract_url.get_url(cta_url)
+			gallery_cta_icid = extract_icid.get_icid(gallery_cta_url)
 			login_url = driver.find_element(By.CLASS_NAME, "martech-paywall__cta-bottom").get_attribute("href")
-			new_login_url = extract_url.get_url(login_url)
-
-			# extract the ICID from the login url
-			login_icid = extract_icid.get_icid(login_url)
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write("\n\nlogin_url: " + new_login_url)
-				icidsFile.write("\nLogin ICID: " + login_icid + "\n")
+			gallery_login_url = extract_url.get_url(login_url)
+			gallery_login_icid = extract_icid.get_icid(gallery_login_url)
 
 		elif is_new_paywal:
-			# extract the CTA url
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__button").get_attribute("href")
-			new_cta_url = extract_url.get_url(cta_url)
-
-			# extract the ICID from the CTA url
-			cta_icid = extract_icid.get_icid(cta_url)
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write("\nNew Paywall")
-				icidsFile.write("\nCTA url: " + new_cta_url)
-				icidsFile.write("\nCTA ICID: " + cta_icid)
-
-			# extract the login url
+			new_paywall_cta_url = extract_url.get_url(cta_url)
+			new_paywall_cta_icid = extract_icid.get_icid(new_paywall_cta_url)
 			login_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__link").get_attribute("href")
-			new_login_url = extract_url.get_url(login_url)
-
-			# extract the ICID from the login url
-			login_icid = extract_icid.get_icid(login_url)
-
-			# write the URLs and the ICIDs to the text file.
-			with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
-				icidsFile.write("\n\nlogin_url: " + new_login_url)
-				icidsFile.write("\nLogin ICID: " + login_icid + "\n")
-
-		print('CTA urls and the ICIDs saved in the file')
+			new_paywall_login_url = extract_url.get_url(login_url)
+			new_paywall_login_icid = extract_icid.get_icid(new_paywall_login_url)
 
 		# 10. Saving the screenshots.
 		date_stamp = str(datetime.datetime.now()).split('.')[0]  # gives the date_stamp as 2022-01-21 11:30:11
@@ -184,11 +125,40 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		                                                                        )  # gives the new_date_stamp as 2021_12_06_12_49_17
 		if channel_name == '':
 			new_channel_name = 'home_portal'
-			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png")
+			driver.save_screenshot(
+				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png"
+			)
 		else:
-			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png")
-		print("screenshot saved successfully")
+			driver.save_screenshot(
+				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png"
+			)
+		print("Screenshot saved successfully")
 	time.sleep(3)
+
+	# 11. Write the URLs and the ICIDs to the text file.
+	with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
+		# Old paywall
+		icidsFile.write("\n\n" + geo_location.upper() + ": ANONYMOUS")
+		icidsFile.write("\nOld Paywall")
+		icidsFile.write("\nCTA url: " + old_paywall_cta_url)
+		icidsFile.write("\nCTA ICID: " + old_paywall_cta_icid)
+		icidsFile.write("\nlogin_url: " + old_paywall_login_url)
+		icidsFile.write("\nLogin ICID: " + Old_paywall_login_icid)
+		# Gallery
+		icidsFile.write("\n\nGallery Paywall")
+		icidsFile.write("\nCTA url: " + gallery_cta_url)
+		icidsFile.write("\nCTA ICID: " + gallery_cta_icid)
+		icidsFile.write("\nlogin_url: " + gallery_login_url)
+		icidsFile.write("\nCTA ICID: " + gallery_login_icid)
+		'''
+		# New Paywall
+		icidsFile.write("\n\nNew Paywall")
+		icidsFile.write("\nCTA url: " + new_paywall_cta_url)
+		icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
+		icidsFile.write("\nlogin_url: " + new_paywall_login_url)
+		icidsFile.write("\nLogin ICID: " + new_paywall_login_icid)
+'''
+	print('CTA URLs and the ICIDs saved in the file')
 
 # 12. Close the session
 driver.close()

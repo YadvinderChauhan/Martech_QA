@@ -1,5 +1,4 @@
-
-from datetime import datetime, timedelta
+import datetime
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -11,17 +10,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from utilities import extract_icid, extract_url
 
 #######################################################################
-today = datetime.today()
-sixty_days_ago = str(today - timedelta(days=60))
-
-#two_months_ago = datetime.strptime(sixty_days_ago, '%m/%d/%y')
-print(sixty_days_ago_ago)
-'''
-b = datetime.strptime('10/15/13', '%m/%d/%y')
-
-print 'a' if a > b else 'b' if b > a else 'tie'
-
-
 wait_time_out = 15
 # 1. Install the Chrome driver at the run time.
 # Create an object of service class and pass the chrome driver installation instance
@@ -32,7 +20,7 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/news/2018/05/20/royal-wedding-guests-moved-tears-prince-charles-speech-darling/?martech_preprod=true&qauxtestingpaywalls=true"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qauxtestingpaywalls=true"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
@@ -45,17 +33,20 @@ driver.add_cookie({"name": "consentUUID", "value": "2dfe1a9d-f1d7-45a9-a78b-3f96
 
 driver.refresh()
 time.sleep(3)
-content_type = driver.execute_script('return martech.visitor.content_type')
-article_published = driver.execute_script('martech.visitor.article_first_published')
-article_published_date = datetime.strptime(article_published, '%m/%d/%y')
 
-if article_published_date < two_months_ago:
-	print('yes it is')
-else:
-	print('No')
-	time.sleep(2)
+# 4. Read each test url from the list, and create a list
+with open("../test_data/paywall_urls.txt", "r") as urlFile:
+	urls_list = []
+	for url in urlFile:
+		urls_list.append(url.strip())
 
+	# 5. open each article one by one by reading the list
+	for url in urls_list:
+		print(url)
+		driver.get(url)
+		time.sleep(2)
+		driver.execute_script("window.scroll(0, 1100)")
 
+# 12. Close the session
 driver.close()
 driver.quit()
-'''

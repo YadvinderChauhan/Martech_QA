@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -10,6 +10,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from utilities import extract_icid, extract_url
 
 #######################################################################
+today = datetime.today()
+sixty_days_ago = today - timedelta(days=60)
+
 wait_time_out = 15
 # 1. Install the Chrome driver at the run time.
 # Create an object of service class and pass the chrome driver installation instance
@@ -20,7 +23,7 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&qauxtestingpaywalls=true"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
@@ -38,28 +41,6 @@ time.sleep(3)
 # cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
 geo_location = driver.execute_script('return martech.visitor.geo_location') # This will form part of the screenshot name.
 
-'''if cookie_consent_given == True or cookie_banner_country == False:
-	print('Cookie banner not expected.')
-
-elif cookie_banner_country == True and cookie_consent_given == False:
-	# 4. Check if the Cookie Banner exists, and accept if yes.
-	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
-
-		if iframe.is_displayed():
-			driver.switch_to.frame(iframe)
-			print("Switched to cookie banner")
-			accept_button = driver.find_element(By.CSS_SELECTOR,
-			                                    "button.message-component.message-button.no-children.focusable.cmp-cta-accept.sp_choice_type_11"
-			                                    )
-			accept_button.click()
-			print("Telegraph Cookies Accepted")
-			time.sleep(5)
-		else:
-			print("Info: No cookie banner displayed.")
-	except Exception as e:
-		print(e)'''
-
 # 4. Read each test url from the list, and create a list
 with open("../test_data/paywall_urls.txt", "r") as urlFile:
 	urls_list = []
@@ -70,12 +51,13 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 	for url in urls_list:
 		print(url)
 		driver.get(url)
-		time.sleep(5)
+		time.sleep(3)
 
 		# 6. Identify the content type to establish which paywall on the page is expected.
 		content_type = driver.execute_script('return martech.visitor.content_type')
 		channel_name = driver.execute_script('return martech.visitor.channel')
 		page_renderer = driver.execute_script('return martech.visitor.page_renderer')
+		article_published_date = driver.execute_script('martech.visitor.article_first_published')
 
 		# 7. Scroll down the page to maximize the paywall if required
 		if content_type == 'gallery':
@@ -86,7 +68,7 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 
 		# 8. Define the page variables - used to identify which paywall is expected
 		is_old_paywal = (content_type == "story" or content_type == "live" or content_type == "video" or content_type == "longform")\
-		                and (channel_name == 'travel' or channel_name == 'property')
+		                and (channel_name == 'travel' or channel_name == 'property'or article_published_date < sixty_days_ago)
 
 		is_gallery_paywall = (content_type == "gallery")
 
@@ -113,6 +95,8 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 
 		elif is_new_paywal:
 			cta_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__button").get_attribute("href")
+
+			martech-paywall__cta martech-paywall__cta-main
 			new_paywall_cta_url = extract_url.get_url(cta_url)
 			new_paywall_cta_icid = extract_icid.get_icid(new_paywall_cta_url)
 			login_url = driver.find_element(By.CLASS_NAME, "martech-new-paywall-mechanism__link").get_attribute("href")
@@ -126,17 +110,17 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		if channel_name == '':
 			new_channel_name = 'home_portal'
 			driver.save_screenshot(
-				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png"
+				"../screenshots/" + geo_location.upper() + "_ANON_" + new_channel_name + new_date_stamp + ".png"
 			)
 		else:
 			driver.save_screenshot(
-				"../screenshots/" + "D+" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png"
+				"../screenshots/" + geo_location.upper() + "_ANON_" + channel_name + new_date_stamp + ".png"
 			)
 		print("Screenshot saved successfully")
 	time.sleep(3)
 
 	# 11. Write the URLs and the ICIDs to the text file.
-	with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
+	with open("../icids/cta_urls_and_icids.txt", mode="a") as icidsFile:
 		# Old paywall
 		icidsFile.write("\n\n" + geo_location.upper() + ": ANONYMOUS")
 		icidsFile.write("\nOld Paywall")
@@ -150,14 +134,14 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		icidsFile.write("\nCTA ICID: " + gallery_cta_icid)
 		icidsFile.write("\nlogin_url: " + gallery_login_url)
 		icidsFile.write("\nCTA ICID: " + gallery_login_icid)
-		'''
+
 		# New Paywall
 		icidsFile.write("\n\nNew Paywall")
 		icidsFile.write("\nCTA url: " + new_paywall_cta_url)
 		icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
 		icidsFile.write("\nlogin_url: " + new_paywall_login_url)
 		icidsFile.write("\nLogin ICID: " + new_paywall_login_icid)
-'''
+
 	print('CTA URLs and the ICIDs saved in the file')
 
 # 12. Close the session

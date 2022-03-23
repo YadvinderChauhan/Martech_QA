@@ -20,7 +20,7 @@ driver = webdriver.Chrome(service=s)
 
 # 2. Open a new browser session, go to The Telegraph website and maximize the window
 driver.get(
-	"https://www.telegraph.co.uk/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false"
+	"https://www.telegraph.co.uk/?martech_preprod=true&qauxtestingpaywalls=true"
 )
 driver.maximize_window()
 wait_variable = W(driver, wait_time_out)
@@ -40,27 +40,6 @@ time.sleep(3)
 # cookie_consent_given = driver.execute_script('return martech.visitor.cookie_consent')
 geo_location = driver.execute_script('return martech.visitor.geo_location') # This will form part of the screenshot name.
 
-'''if cookie_consent_given == True or cookie_banner_country == False:
-	print('Cookie banner not expected.')
-
-elif cookie_banner_country == True:
-	# 4. Check if the Cookie Banner exists, and accept if yes.
-	try:
-		iframe = driver.find_element(By.ID, "sp_message_iframe_607910")
-		if iframe.is_displayed():
-			driver.switch_to.frame(iframe)
-			print("Switched to cookie banner")
-			accept_button = driver.find_element(By.CSS_SELECTOR,
-			                                    "button.message-component.message-button.no-children.focusable.cmp-cta-accept.sp_choice_type_11"
-			                                    )
-			accept_button.click()
-			print("Telegraph Cookies Accepted")
-			time.sleep(5)
-		else:
-			print("Info: No cookie banner displayed.")
-	except Exception as e:
-		print(e)'''
-
 # 4. Read the email ID and the password for the test account from the text file.
 with open("../test_data/login_credentials.txt", "r") as userFile:
 	account_list = userFile.read().split(',')
@@ -76,16 +55,16 @@ driver.find_element(By.ID, "email").send_keys(email_id)
 driver.find_element(By.ID, "login-button").click()
 time.sleep(2)
 driver.find_element(By.ID, "password").send_keys(password)
-# time.sleep(2)
+time.sleep(2)
 driver.find_element(By.ID, "login-button").click()
 print('Login successful')
 time.sleep(3)
 
 driver.get("https://www.telegraph.co.uk/politics/2022/02/04/congratulated-bbc-inviting-unvaccinated-question-time"
-           "-might/?martech_preprod=true&qamanylive=true&aem-hard-paywall=false&general-soft=false")
-time.sleep(7)
+           "-might/?martech_preprod=true&qauxtestingpaywalls=true")
+time.sleep(3)
 driver.execute_script("window.scroll(0, 2000)")
-time.sleep(5)
+time.sleep(2)
 
 
 # 6. Read each test url from the list, and create a list
@@ -98,7 +77,7 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 	for url in urls_list:
 		print(url)
 		driver.get(url)
-		time.sleep(5)
+		time.sleep(3)
 
 		# 8. Identify the content type to establish which paywall on the page is expected.
 		content_type = driver.execute_script('return martech.visitor.content_type')
@@ -144,29 +123,30 @@ with open("../test_data/paywall_urls.txt", "r") as urlFile:
 		                                                                        )  # gives the new_date_stamp as 2021_12_06_12_49_17
 		if channel_name == '':
 			new_channel_name = 'home_portal'
-			driver.save_screenshot("../screenshots/" + "D+" + geo_location.upper() + "_REG_" + new_channel_name + new_date_stamp + ".png")
+			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_REG_" + new_channel_name + new_date_stamp + ".png")
 		else:
-			driver.save_screenshot("../screenshots/" + "D+" + geo_location.upper() + "_REG_" + channel_name + new_date_stamp + ".png")
+			driver.save_screenshot("../screenshots/" + geo_location.upper() + "_REG_" + channel_name + new_date_stamp + ".png")
 		print("Screenshot saved successfully")
 	time.sleep(3)
 
 	# 12. Write the URLs and the ICIDs to the text file.
-	with open("../icids/urls_and_icids.txt", mode="a") as icidsFile:
+	with open("../icids/cta_urls_and_icids.txt", mode="a") as icidsFile:
 		# Old paywall
 		icidsFile.write("\n\n" + geo_location.upper() + ": REGISTRANT - LOGGED IN")
 		icidsFile.write("\nOld Paywall")
 		icidsFile.write("\nCTA url: " + old_paywall_cta_url)
 		icidsFile.write("\nCTA ICID: " + old_paywall_cta_icid)
+
 		# Gallery
 		icidsFile.write("\n\nGallery Paywall")
 		icidsFile.write("\nCTA url: " + gallery_cta_url)
 		icidsFile.write("\nCTA ICID: " + gallery_cta_icid)
-		'''
-		# New Paywall
-		icidsFile.write("\n\nNew Paywall")
-		icidsFile.write("\nCTA url: " + new_paywall_cta_url)
-		icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
-	'''
+
+		# # New Paywall
+		# icidsFile.write("\n\nNew Paywall")
+		# icidsFile.write("\nCTA url: " + new_paywall_cta_url)
+		# icidsFile.write("\nCTA ICID: " + new_paywall_cta_icid)
+
 	print('CTA urls and the ICIDs saved in the file')
 
 # 13. Close the session

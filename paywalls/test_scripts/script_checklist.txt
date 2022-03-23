@@ -4,7 +4,7 @@ Checklist to configure the test script before running:
 1. Identify the correct test urls with the correct query parameters and update the appropriate test data file.
 2. For login identify the correct user account that has fallen in the right group before for example Control or Variation
    and Digital or Digital Plus and update the 'login_credentials.txt'
-3. Update the path to save the screenshots in the correct format for example 'CTRL_' or 'VAR_' or 'D+' etc.
-4. Update the appropriate section of the script to write the URLs and the ICIDs to the text file i.e., old paywall or gallery or all.
+3. If required, update the path to save the screenshots in the correct format for example 'CTRL_' or 'VAR_' or 'D+' etc.
+4. If required, update the appropriate section of the script to write the URLs and the ICIDs to the text file i.e., old paywall or gallery or all.
 
 Only after the above is done, run the script otherwise the script could fail.
